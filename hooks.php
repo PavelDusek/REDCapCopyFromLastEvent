@@ -21,10 +21,11 @@ function copy_from_last_event() {
 	$q = db_query($sql);
 	while( $row = db_fetch_assoc($q) ) {
 		if ( !is_null($row['misc']) )
-			//TODO regex @GETDATAFROMLASTEVENT
+			//TODO regex @COPYFROMLASTEVENT
 			echo "<p>" . $row['field_name'] . ":" . $row['misc'] . "</p>";
 	}
 
+	//Search for last event that this isnstrument is used in.
 	$events = REDCap::getEventNames(true);
 	$previous_event_id = 0;
 	foreach ( array_keys($events) as $id ) {
