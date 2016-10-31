@@ -33,23 +33,25 @@ function isInstrumentUsedInEvent( $instrument, $event_id ) {
 }
 
 function copy_from_last_event($project_id, $record, $instrument, $event_id, $group_id) {
-
+	//Get all fields in this project and this instrument with the action tag @COPYFROMLASTEVENT.
 	$has_given_action_tag = get_fields_with_action_tag( $project_id, $instrument, '/@COPYFROMLASTEVENT/' );
-	print_r( $has_given_action_tag );
 
 	//Search for last event that this isnstrument is used in.
 	$events = REDCap::getEventNames(true);
 	$previous_event_id = 0;
 	foreach ( array_keys($events) as $id ) {
-		if ($id == $event_id)
-			break;
-		else {
-			if ( isInstrumentUsedInEvent($instrument,$id) )
-				$previous_event_id = $id;
-		}
+		if ($id == $event_id) break;
+		else if ( isInstrumentUsedInEvent($instrument,$id) ) $previous_event_id = $id;
 	}
-	echo "<p> this event id: $event_id</p>";
-	echo "<p> previous event id: $previous_event_id </p>";
+
+	if ($previous_event_id) {
+		//TODO put javascript here
+		//get data for this project, this record and this instrument
+		//from previous event for the fields that has the action @COPYFROMLASTEVENT
+		$data = REDCap::getData( $project_id, 'array', $record, $has_given_action_tag, $previous_event_id );
+		print_r( $data );
+
+	}
 ?>
 <script type='text/javascript'>
 	function getDataFromLastEvent () {
