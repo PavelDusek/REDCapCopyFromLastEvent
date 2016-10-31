@@ -1,19 +1,7 @@
 <?php
 
-function isInstrumentUsedInEvent( $instrument, $event_id ) {
-	$sql = sprintf( 
-		"SELECT `form_name` FROM `redcap_events_forms` WHERE `event_id`='%s';",
-		db_real_escape_string($event_id)
-	);
-	$q = db_query( $sql );
-	while ( $row = db_fetch_assoc($q) ) {
-		if( $instrument == $row['form_name'] ) return true;
-	}
-	return false;
-}
-
-function copy_from_last_event($project_id, $record, $instrument, $event_id, $group_id) {
-	//Search for all questions in this instrument in this project.
+function get_fields_with_action_tag( $project_id, $instrument, $action_tag_regex ) {
+	//Search for all fields in given instrument in given project.
 	$sql = sprintf(
 		"SELECT `field_name`,`misc` FROM `redcap_metadata` WHERE `project_id`='%s' AND `form_name`='%s';",
 		db_real_escape_string($project_id),
@@ -21,12 +9,33 @@ function copy_from_last_event($project_id, $record, $instrument, $event_id, $gro
 	);
 	$q = db_query($sql);
 
-	//Walk through each question and look if there is @COPYFROMLASTEVENT action tag.
+	//Walk through each question and look if it matches given action tag regex.
+	$action_tag_matches = array();
 	while( $row = db_fetch_assoc($q) ) {
-		if ( !is_null($row['misc']) && preg_match( '/@COPYFROMLASTEVENT/', $row['misc'] ) ) {
-			echo "<p>" . $row['field_name'] . ":" . $row['misc'] . "</p>";
-		}
+		if ( !is_null($row['misc']) && preg_match( $action_tag_regex, $row['misc'] ) )
+			array_push( $action_tag_matches, $row['field_name'] );
 	}
+	return $action_tag_matches;
+}
+
+function isInstrumentUsedInEvent( $instrument, $event_id ) {
+	//Search for all instruments in given event.
+	$sql = sprintf( 
+		"SELECT `form_name` FROM `redcap_events_forms` WHERE `event_id`='%s';",
+		db_real_escape_string($event_id)
+	);
+	$q = db_query( $sql );
+	//Walk through each instrument and test if it is the given one. If it is, then it is used in this event.
+	while ( $row = db_fetch_assoc($q) ) {
+		if( $instrument == $row['form_name'] ) return true;
+	}
+	return false;
+}
+
+function copy_from_last_event($project_id, $record, $instrument, $event_id, $group_id) {
+
+	$has_given_action_tag = get_fields_with_action_tag( $project_id, $instrument, '/@COPYFROMLASTEVENT/' );
+	print_r( $has_given_action_tag );
 
 	//Search for last event that this isnstrument is used in.
 	$events = REDCap::getEventNames(true);
