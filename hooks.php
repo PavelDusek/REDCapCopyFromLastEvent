@@ -44,33 +44,23 @@ function copy_from_last_event($project_id, $record, $instrument, $event_id, $gro
 		else if ( isInstrumentUsedInEvent($instrument,$id) ) $previous_event_id = $id;
 	}
 
-	if ($previous_event_id) {
-		//TODO put javascript here
+	//Run only if there is previous event and if there are any fields with the action tag @COPYFROMLASTEVENT
+	if ($previous_event_id && (!empty($has_given_action_tag)) ) {
 		//get data for this project, this record and this instrument
-		//from previous event for the fields that has the action @COPYFROMLASTEVENT
+		//from previous event for the fields that has the action tag @COPYFROMLASTEVENT
 		$data = REDCap::getData( $project_id, 'array', $record, $has_given_action_tag, $previous_event_id );
-		print_r( $data );
+		$data_for_this_record = array_pop($data);
+		$data_for_this_record_and_event = array_pop($data_for_this_record);
 
+		echo "<script type='text/javascript'>\n";
+		echo "\tfunction getDataFromLastEvent () {\n";
+		foreach ( $data_for_this_record_and_event as $field_name => $field_value ) {
+			echo "\t\talert('$field_name: $field_value');\n";
+		}
+		echo "\t}\n";
+		echo "</script>\n";
+		echo "<button onClick='getDataFromLastEvent();'>Copy from last event</button>\n";
 	}
-?>
-<script type='text/javascript'>
-	function getDataFromLastEvent () {
-		alert('project_id: ' + '<?php echo $project_id;?>');
-		alert('record: ' + '<?php echo $record;?>');
-		alert('instrument: ' + '<?php echo $project_id;?>');
-		alert('event_id: ' + '<?php echo $event_id;?>');
-		alert('group_id: ' + '<?php echo $group_id;?>');
-<?php
-	$events = REDCap::getEventNames(true);
-	foreach (array_keys($events) as $event) {
-		print "alert('event: $event');";
-	}
-?>
-	}
-</script>
-<button onClick='getDataFromLastEvent();'>Copy from last event</button>
-
-<?php
 }
 
 
