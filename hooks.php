@@ -12,17 +12,20 @@ function isInstrumentUsedInEvent( $instrument, $event_id ) {
 	return false;
 }
 
-function copy_from_last_event() {
+function copy_from_last_event($project_id, $record, $instrument, $event_id, $group_id) {
+	//Search for all questions in this instrument in this project.
 	$sql = sprintf(
 		"SELECT `field_name`,`misc` FROM `redcap_metadata` WHERE `project_id`='%s' AND `form_name`='%s';",
 		db_real_escape_string($project_id),
 		db_real_escape_string($instrument)
 	);
 	$q = db_query($sql);
+
+	//Walk through each question and look if there is @COPYFROMLASTEVENT action tag.
 	while( $row = db_fetch_assoc($q) ) {
-		if ( !is_null($row['misc']) )
-			//TODO regex @COPYFROMLASTEVENT
+		if ( !is_null($row['misc']) && preg_match( '/@COPYFROMLASTEVENT/', $row['misc'] ) ) {
 			echo "<p>" . $row['field_name'] . ":" . $row['misc'] . "</p>";
+		}
 	}
 
 	//Search for last event that this isnstrument is used in.
@@ -61,6 +64,6 @@ function copy_from_last_event() {
 
 
 function redcap_data_entry_form_top($project_id, $record, $instrument, $event_id, $group_id) {
-	if ( REDCap::isLongitudinal() ) copy_from_last_event();
+	if ( REDCap::isLongitudinal() ) copy_from_last_event($project_id, $record, $instrument, $event_id, $group_id);
 }
 ?>
