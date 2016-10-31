@@ -1,5 +1,5 @@
 # REDCapCopyFromLastEvent
-A hook for REDCap (https://projectredcap.org/) that enables you to use @COPYFROMLASTEVENT action tag. It adds a button that enables you to copy value of a parameter from a different event.
+A hook for REDCap (https://projectredcap.org/) that enables you to use @COPYFROMLASTEVENT action tag. It adds a button that enables you to copy value of a parameter from the previous event.
 
 
 !!!PROJECT STILL IN DEVELOPMENT!!!
