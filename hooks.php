@@ -1,10 +1,10 @@
 <?php
-$debugging = true;
+$debugging = false;
 
 function get_fields_with_action_tag( $project_id, $instrument, $action_tag_regex ) {
 	//Search for all fields in given instrument in given project.
 	global $debugging;
-	$debugging = true;
+	$debugging = false;
 
 	$sql = sprintf(
 		"SELECT `field_name`,`misc` FROM `redcap_metadata` WHERE `project_id`='%s' AND `form_name`='%s';",
@@ -26,7 +26,7 @@ function get_fields_with_action_tag( $project_id, $instrument, $action_tag_regex
 function isInstrumentUsedInEvent( $instrument, $event_id ) {
 	//Search for all instruments in given event.
 	global $debugging;
-	$debugging = true;
+	$debugging = false;
 
 	$sql = sprintf( 
 		"SELECT `form_name` FROM `redcap_events_forms` WHERE `event_id`='%s';",
@@ -44,7 +44,7 @@ function isInstrumentUsedInEvent( $instrument, $event_id ) {
 function copy_from_last_event($project_id, $record, $instrument, $event_id, $group_id) {
 	//Get all fields in this project and this instrument with the action tag @COPYFROMLASTEVENT.
 	global $debugging;
-	$debugging = true;
+	$debugging = false;
 	echo "debugging: $debugging<br/>\n";
 
 	$has_given_action_tag = get_fields_with_action_tag( $project_id, $instrument, '/@COPYFROMLASTEVENT/' );
@@ -71,7 +71,18 @@ function copy_from_last_event($project_id, $record, $instrument, $event_id, $gro
 		$data_for_this_record = array_pop($data);
 		$data_for_this_record_and_event = array_pop($data_for_this_record);
 
-		if ($debugging) { echo "\$data_for_this_record_and_event:"; print_r( $data_for_this_record_and_event ); echo "<br /><br /><hr />\n"; }
+		if ($debugging) {
+			echo "\$data_for_this_record_and_event: "; print_r( $data_for_this_record_and_event ); echo "<br />\n";
+			foreach ( $data_for_this_record_and_event as $field_name => $field_value ) {
+				$field_type = REDCap::getFieldType( $field_name );
+				if ($debugging) {
+					echo "\$field_name:$field_name, ";
+					echo "\$field_type: $field_type, ";
+					echo "\$field_value: $field_value";
+					echo "<br />\n";
+				}
+			}
+		}
 
 		//Create a button to run the code.
 		echo "<button id='copy-from-last-event-button' type='button' onClick='copyFromLastEvent();'>Copy data from event $previous_event_name</button>\n";
@@ -79,13 +90,25 @@ function copy_from_last_event($project_id, $record, $instrument, $event_id, $gro
 		echo "<script type='text/javascript'>\n";
 		echo "\tfunction copyFromLastEvent () {\n";
 		foreach ( $data_for_this_record_and_event as $field_name => $field_value ) {
-			if (strlen( $field_value ) > 0 ) { //only if the field_value is set
-				//Code for text input fields:
-				echo "\t\t$('input[name=$field_name]').val('$field_value');\n";
-				//Code for radio input fields (it should not be a problem, if the radio does not exist):
-				echo "\t\t$('input:radio[name=" . $field_name . "___radio][value=$field_value]').click();\n";
-				//Code for checkbox input fields (it should not be a problem, if the checkbox does not exist):
-				echo "\t\t$('input:checkbox[name=__chkn__" . $field_name . "][code=$field_value]').click();\n";
+			$field_type = REDCap::getFieldType( $field_name );
+			switch ($field_type) {
+				case 'text':
+					if (strlen( $field_value ) > 0 ) { //only if the field_value is set
+						echo "\t\t$('input[name=$field_name]').val('$field_value');\n";
+					};
+					break;
+				case 'radio':
+					echo "\t\t$('input:radio[name=" . $field_name . "___radio][value=$field_value]').click();\n";
+					break;
+				case 'checkbox':
+					//Code for checkbox input fields (it should not be a problem, if the checkbox does not exist):
+					foreach( $field_value as $chk_code => $chk_value ) {
+						if ($chk_value != 0) {
+							echo "\t\t$('input:checkbox[name=__chkn__" . $field_name . "][code=$chk_code]')";
+							echo ".click();\n";
+						}
+					}
+					break;
 			}
 		}
 		echo "\t}\n\n";
@@ -97,6 +120,7 @@ function copy_from_last_event($project_id, $record, $instrument, $event_id, $gro
 		echo "\t});\n";
 		echo "</script>\n";
 	}
+	if ($debugging) { echo "<br /><hr />\n"; }
 }
 
 function redcap_data_entry_form_top($project_id, $record, $instrument, $event_id, $group_id) {
