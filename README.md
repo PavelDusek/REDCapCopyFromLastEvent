@@ -1,6 +1,6 @@
 # Version 1.0
 ## REDCapCopyFromLastEvent
-A hook for REDCap (https://projectredcap.org/) that enables you to use @COPYFROMLASTEVENT action tag. It adds a button that enables you to copy value of a parameter from the previous event. This version (1.0) supports data types: text, radio, checkbox.
+A hook for REDCap (https://projectredcap.org/) that enables you to use @COPYFROMLASTEVENT action tag. It adds a button that enables you to copy value of a parameter from the previous event. This version (1.0) supports data types as folows: text, radio, checkbox.
 
 ## Installation
 If you are not using any other hook, put hooks.php file to the redcap root directory on the web server and set the path to it in the Control Center -> General Configuration -> Other system settings -> REDCap Hooks.

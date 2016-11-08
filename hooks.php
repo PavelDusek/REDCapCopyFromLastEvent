@@ -1,4 +1,7 @@
 <?php
+/***************/
+/* Version 1.0 */
+/***************/
 $debugging = false;
 
 function get_fields_with_action_tag( $project_id, $instrument, $action_tag_regex ) {
