@@ -4,7 +4,6 @@ $debugging = false;
 function get_fields_with_action_tag( $project_id, $instrument, $action_tag_regex ) {
 	//Search for all fields in given instrument in given project.
 	global $debugging;
-	$debugging = false;
 
 	$sql = sprintf(
 		"SELECT `field_name`,`misc` FROM `redcap_metadata` WHERE `project_id`='%s' AND `form_name`='%s';",
@@ -26,7 +25,6 @@ function get_fields_with_action_tag( $project_id, $instrument, $action_tag_regex
 function isInstrumentUsedInEvent( $instrument, $event_id ) {
 	//Search for all instruments in given event.
 	global $debugging;
-	$debugging = false;
 
 	$sql = sprintf( 
 		"SELECT `form_name` FROM `redcap_events_forms` WHERE `event_id`='%s';",
@@ -44,8 +42,6 @@ function isInstrumentUsedInEvent( $instrument, $event_id ) {
 function copy_from_last_event($project_id, $record, $instrument, $event_id, $group_id) {
 	//Get all fields in this project and this instrument with the action tag @COPYFROMLASTEVENT.
 	global $debugging;
-	$debugging = false;
-	echo "debugging: $debugging<br/>\n";
 
 	$has_given_action_tag = get_fields_with_action_tag( $project_id, $instrument, '/@COPYFROMLASTEVENT/' );
 	if ($debugging) { echo "\$has_given_action_tag:"; print_r( $has_given_action_tag ); echo "<br />\n"; }
